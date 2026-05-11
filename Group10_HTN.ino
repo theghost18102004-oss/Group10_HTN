@@ -120,45 +120,30 @@ void vPublishTimerCallback(TimerHandle_t xTimer) {
   publishData();
 }
 
-
 // ================= MQTT =================
 void mqttCallback(char* receivedTopic, byte* payload, unsigned int length) {
   String message;
-  
-  // Chuyển payload thành String
-  for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
-  }
-
+  for (int i = 0; i < length; i++) message += (char)payload[i];
   Serial.println("Received MQTT: " + message);
 
-  // ================== XỬ LÝ LỆNH BÁO THỨC ==================
-  
-  if (message.startsWith("ALARM_SET")) {
+  if (message == "LED_ON") digitalWrite(LED_PIN, HIGH);
+  else if (message == "LED_OFF") digitalWrite(LED_PIN, LOW);
+  else if (message.startsWith("ALARM_SET")) {
     int h, m;
-    // Phân tích lệnh dạng: ALARM_SET 07:30
     if (sscanf(message.c_str(), "ALARM_SET %d:%d", &h, &m) == 2) {
       xSemaphoreTake(xMutexData, portMAX_DELAY);
-      sysData.alarmHour = h;
-      sysData.alarmMinute = m;
+      sysData.alarmHour = h; 
+      sysData.alarmMinute = m; 
       sysData.alarmEnabled = true;
       xSemaphoreGive(xMutexData);
-      
-      Serial.println("→ Đã đặt báo thức: " + String(h) + ":" + String(m));
-    } else {
-      Serial.println("→ Lỗi cú pháp ALARM_SET");
     }
   } 
   else if (message == "ALARM_CLEAR") {
     xSemaphoreTake(xMutexData, portMAX_DELAY);
     sysData.alarmEnabled = false;
     xSemaphoreGive(xMutexData);
-    
-    Serial.println("→ Đã tắt báo thức");
   }
 }
-
-
 
 void reconnectMQTT() {
   while (!mqttClient.connected()) {
