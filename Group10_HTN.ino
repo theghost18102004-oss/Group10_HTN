@@ -190,7 +190,7 @@ void TaskSensors(void *pvParameters) {
   SystemData_t sensorData;
 
   for (;;) {
-    int lightValue = analogRead(LIGHT_PIN);
+    int lightValue = digitalRead(LIGHT_PIN);
     int gasADC = analogRead(GAS_PIN);
     int gasPercent = map(gasADC, 0, 4095, 0, 100);
     bool isDark = (lightValue > 1800);
